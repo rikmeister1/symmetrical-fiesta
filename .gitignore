@@ -1,0 +1,14 @@
+temp/
+__pycache__/
+*.pyc
+.env
+**/secrets.toml
+.venv/
+.ruff_cache/
+node_modules/
+.DS_Store
+.claude/settings.local.json
+.devcontainer/logs/
+boilerplate/
+output/*
+!output/.gitkeep

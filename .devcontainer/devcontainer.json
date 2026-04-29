@@ -1,0 +1,71 @@
+{
+  "name": "Vibe Innovation Lab Environment",
+  "image": "mcr.microsoft.com/devcontainers/python:3.10",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "containerEnv": {
+    "STREAMLIT_SERVER_HEADLESS": "true",
+    "STREAMLIT_SERVER_ADDRESS": "0.0.0.0",
+    "STREAMLIT_SERVER_PORT": "8501",
+    "STREAMLIT_SERVER_ENABLE_CORS": "false",
+    "STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION": "false",
+    "STREAMLIT_BROWSER_GATHER_USAGE_STATS": "false"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        // Auto-save every edit after a 1-second idle window. Browser-embedded
+        // VS Code sometimes loses the Ctrl+S shortcut to the host browser,
+        // which silently blocks the save. Auto-save eliminates that failure
+        // mode entirely and also removes one manual step from the workshop
+        // push flow (the previous "save all tabs" step becomes unnecessary).
+        // afterDelay plays well with Streamlit hot reload: edits trigger a
+        // hot reload roughly a second later without any user action.
+        "files.autoSave": "afterDelay",
+        "files.autoSaveDelay": 1000,
+        // Bump the terminal scrollback buffer from the 1000-line default
+        // to 10000. The first interactive shell after each container
+        // start dumps the full bootstrap and start logs inline via the
+        // ~/.vbi_banner.sh hook; with only 1000 lines of scrollback, the
+        // earliest lines of the dump get evicted before the user can
+        // scroll to them. 10000 is enough headroom for our current log
+        // size plus any commands the user types afterwards.
+        "terminal.integrated.scrollback": 10000
+      },
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  },
+  // postCreateCommand runs once on container creation and delegates the
+  // entire bootstrap to .devcontainer/post_create.sh. The script installs
+  // uv, syncs Python dependencies into prototype/.venv (with a pip fallback),
+  // verifies that a streamlit binary is reachable, pins the Streamlit server
+  // config, and installs the Claude Code CLI. See the script header for the
+  // full stage list and failure semantics.
+  "postCreateCommand": "bash .devcontainer/post_create.sh",
+  // postStartCommand runs on every Codespace start and delegates all logic
+  // to .devcontainer/post_start.sh for readability. The script refreshes
+  // the Streamlit config, writes a terminal banner file sourced by .bashrc
+  // on every new interactive shell, cleans up legacy banner lines from
+  // earlier devcontainer versions, and launches Streamlit as a detached
+  // background process via `nohup` so it survives the postStartCommand
+  // shell exit. Output is captured in .devcontainer/logs/streamlit.log.
+  "postStartCommand": "bash .devcontainer/post_start.sh",
+  "forwardPorts": [8501],
+  "portsAttributes": {
+    "8501": {
+      "label": "Streamlit App",
+      // `notify` shows a toast with the forwarded URL but does not open
+      // the VS Code Simple Browser. The preview pane was removed on user
+      // request because its auto-open was conflated with the autorun
+      // working: if Streamlit failed to bind, the preview never opened
+      // and the failure was invisible. Users now click the forwarded URL
+      // in the PORTS panel (or the toast) to open the app in a real tab.
+      "onAutoForward": "notify",
+      "visibility": "public"
+    }
+  }
+}
